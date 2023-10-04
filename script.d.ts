@@ -58,10 +58,7 @@ interface Semester {
 }
 
 interface DKHPViewModel {
-    dsKetQuaDKHP(): Array<Subject>;
-    dsKetQuaDKHP(items: Array<Subject>): KnockoutStatic;
-    dsHocKy(): Array<Semester>;
-    dsHocKy(items: Array<Semester>): KnockoutStatic;
-    selectedMaHK(): number;
-    selectedMaHK(code: number): KnockoutStatic;
+    dsKetQuaDKHP: KnockoutObservableArray<Subject>;
+    dsHocKy: KnockoutObservableArray<Semester>;
+    selectedMaHK: KnockoutObservable<number>;
 }
