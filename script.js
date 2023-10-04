@@ -14,11 +14,61 @@
      */
     const SEMESTER_DATES = {
         "1/23-24": {
-            theoryStart: new Date("2023-10-02T00:00:00Z"),
-            practiceStart: new Date("2023-10-09T00:00:00Z"),
-            theoryEnd: new Date("2023-12-17T00:00:00Z"),
-            practiceEnd: new Date("2023-12-17T00:00:00Z"),
+            theory: {
+                start: new Date("2023-10-02T00:00:00Z"),
+                end: new Date("2023-12-17T00:00:00Z"),
+            },
+            practice: {
+                start: new Date("2023-10-09T00:00:00Z"),
+                end: new Date("2023-12-17T00:00:00Z"),
+            },
+            breaks: [
+                {
+                    // Midterms
+                    start: new Date("2023-11-06T00:00:00Z"),
+                    end: new Date("2023-11-12T00:00:00Z"),
+                }
+            ],
         },
+        "2/23-24": {
+            theory: {
+                start: new Date("2024-01-08T00:00:00Z"),
+                end: new Date("2024-04-14T00:00:00Z"),
+            },
+            practice: {
+                start: new Date("2024-01-15T00:00:00Z"),
+                end: new Date("2024-04-14T00:00:00Z"),
+            },
+            breaks: [
+                {
+                    // Lunar New Year
+                    start: new Date("2023-01-29T00:00:00Z"),
+                    end: new Date("2023-02-18T00:00:00Z"),
+                },
+                {
+                    // Midterms
+                    start: new Date("2023-03-04T00:00:00Z"),
+                    end: new Date("2023-03-10T00:00:00Z"),
+                }
+            ]
+        },
+        "3/23-24": {
+            theory: {
+                start: new Date("2023-05-13T00:00:00Z"),
+                end: new Date("2023-08-18T00:00:00Z"),
+            },
+            practice: {
+                start: new Date("2023-05-20T00:00:00Z"),
+                end: new Date("2023-08-18T00:00:00Z"),
+            },
+            breaks: [
+                {
+                    // Midterms + Admission 2024
+                    start: new Date("2023-06-17T00:00:00Z"),
+                    end: new Date("2023-07-14T00:00:00Z"),
+                },
+            ]
+        }
     };
 
     const UTC_TIMEZONE_FORMATTER = new Intl.DateTimeFormat("vi-VN", {
@@ -112,13 +162,23 @@
         const SECOND = 1000;
         const MINUTE = 60 * SECOND;
         const HOUR = 60 * MINUTE;
-        const DAY = 24 * HOUR;
-        const WEEK = 7 * DAY;
+        const DAY = 24 * HOUR;        
         return new Date(
             // hm is in UTC+7
             // weekday is between 0-6
             +startMondayUTC + weekday * DAY + (hm[0] - 7) * HOUR + hm[1] * MINUTE,
         );
+    }
+    
+    /**
+     * 
+     * @param {Date} date 
+     * @param {number} days 
+     */
+    function addDays(date, days) {
+        const newDate = new Date(date.valueOf());
+        newDate.setDate(date.getDate() + days);
+        return newDate;
     }
 
     /**
@@ -129,13 +189,38 @@
      * @param {Timerow} tr 
      * @param {Date} startMondayUTC
      * @param {Date} endDate
+     * @param {Array<TimeSpan>} excludes
      */
-    function formatTimerow(tr, startMondayUTC, endDate) {
+    function formatTimerow(tr, startMondayUTC, endDate, excludes = []) {
         const extraEntries = Object.entries(tr.extras);
         const descriptionRow = [];
         if (extraEntries.length !== 0) {
             const description = extraEntries.map(([k ,v]) => `${k}: ${v}`).join("\\n")
             descriptionRow.push(`DESCRIPTION:${description}`);
+        }
+        
+        const rrules = [
+            `RRULE:FREQ=WEEKLY;UNTIL=${formatISO8601(endDate, UTC_TIMEZONE_FORMATTER)}`,
+        ];
+
+        const startDate = dateOfIndex(tr.startHm, startMondayUTC, tr.weekday);
+        
+        // Check if the weekly event coincides with any breaks, and add exceptions.
+        if (excludes.length > 0) {
+            let currentDate = startDate;
+            let excludeCount = 0;
+            while (currentDate < endDate) {
+                if (excludes.some((span) => span.start <= currentDate && currentDate <= span.end)) {
+                    if (excludeCount === 0) {
+                        rrules.push(`EXDATE;TZID=${TIMEZONE}`);
+                        rrules.push(` :${formatISO8601(currentDate, LOCAL_TIMEZONE_FORMATTER)}`);
+                    } else {
+                        rrules.push(` ,${formatISO8601(currentDate, LOCAL_TIMEZONE_FORMATTER)}`);
+                    }
+                    excludeCount++;
+                }
+                currentDate = addDays(currentDate, 7);
+            }
         }
 
         return [
@@ -160,7 +245,7 @@
                 )
             }`,
             
-            `RRULE:FREQ=WEEKLY;UNTIL=${formatISO8601(endDate, UTC_TIMEZONE_FORMATTER)}`,
+            ...rrules,
 
             "END:VEVENT",
         ]
@@ -257,7 +342,7 @@
                         ...commonExtras,
                     },
                 };
-                ical.push(...formatTimerow(timerow, dates.theoryStart, dates.theoryEnd))
+                ical.push(...formatTimerow(timerow, dates.theory.start, dates.theory.end, dates.breaks))
             }
         }
 
@@ -273,7 +358,7 @@
                         ...commonExtras,
                     },
                 }
-                ical.push(...formatTimerow(timerow, dates.practiceStart, dates.practiceEnd))
+                ical.push(...formatTimerow(timerow, dates.practice.start, dates.practice.end, dates.breaks))
             }
         }
     }

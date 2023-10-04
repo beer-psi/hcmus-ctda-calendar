@@ -17,4 +17,4 @@ For convenience, you can also save [this bookmarklet](javascript:void(function(d
 you want to export the timetable.
 
 ### Todos
-- [ ] Handle holidays and other breaks in the middle of a semester
+- [x] Handle holidays and other breaks in the middle of a semester

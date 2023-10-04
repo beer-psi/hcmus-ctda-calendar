@@ -1,8 +1,12 @@
+interface TimeSpan {
+    start: Date;
+    end: Date;
+}
+
 interface SemesterDates {
-    theoryStart: Date;
-    practiceStart: Date;
-    theoryEnd: Date;
-    practiceEnd: Date;
+    theory: TimeSpan;
+    practice: TimeSpan;
+    breaks: Array<TimeSpan>;
 }
 
 interface Timerow {
