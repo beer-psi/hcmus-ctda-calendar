@@ -1,0 +1,16 @@
+lockfileVersion: '6.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+devDependencies:
+  '@types/knockout':
+    specifier: ^3.4.73
+    version: 3.4.73
+
+packages:
+
+  /@types/knockout@3.4.73:
+    resolution: {integrity: sha512-v3Yj/7jn0d3fsQswCk+It7ZaHuR9+X1oRnaOxrCitNr9K3gKZ0raHEhtepnoCQ7kChvRK+Nb3iQREgKIcxFQRw==}
+    dev: true

@@ -1,10 +1,12 @@
+/// <reference types="@types/knockout" />
+
 (() => {
     const ICAL_ID = /** @type {const} */("ctdacalendar");
     const ICAL_PRODUCT = /** @type {const} */("CTDA Timetable Exporter");
 
     const TIMEZONE = "Asia/Ho_Chi_Minh";
 
-    const DAYS_OF_THE_WEEK = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
+    const DAYS_OF_THE_WEEK = /** @type {const} */(["T2", "T3", "T4", "T5", "T6", "T7", "CN"]);
 
     const ANY_BR_TAG_REGEX = /<\s*br\s*\/?\s*>/gu;
     
@@ -140,7 +142,7 @@
                 throw new Error(`Schedule was not in correct format: ${date}`);
             }
 
-            const [_, dayOfWeek, startHour, endHour, location] = /** @type {[string, string, string, string, string]} */(match);
+            const [_, dayOfWeek, startHour, endHour, location] = /** @type {[string, typeof DAYS_OF_THE_WEEK[number], string, string, string]} */(match);
 
             const weekday = DAYS_OF_THE_WEEK.indexOf(dayOfWeek);
             if (weekday === -1) {

@@ -21,9 +21,6 @@ interface Timerow {
     extras: Record<string, string>;
 }
 
-// Types from the website
-declare const ko;
-
 interface Subject {
     Id: string;
     MaDKHP: number;
@@ -62,9 +59,9 @@ interface Semester {
 
 interface DKHPViewModel {
     dsKetQuaDKHP(): Array<Subject>;
-    dsKetQuaDKHP(items: Array<Subject>): unknown;
+    dsKetQuaDKHP(items: Array<Subject>): KnockoutStatic;
     dsHocKy(): Array<Semester>;
-    dsHocKy(items: Array<Semester>): unknown;
+    dsHocKy(items: Array<Semester>): KnockoutStatic;
     selectedMaHK(): number;
-    selectedMaHK(code: number): unknown;
+    selectedMaHK(code: number): KnockoutStatic;
 }
