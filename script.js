@@ -110,6 +110,25 @@
     }
 
     /**
+     * @param {string} content 
+     * @param {number} initialLineLength 
+     */
+    function wrapText(content, initialLineLength = 0) {
+        const length = content.length;
+        
+        let processed = 75 - initialLineLength;
+        let ret = content.substring(0, 75 - initialLineLength);
+
+        while (processed < length) {
+            const substr = content.substring(processed, processed + 75);
+            ret += `\r\n ${substr}`;
+            processed += 75;
+        }
+
+        return ret;
+    }
+
+    /**
      * @param {string} schedule Raw schedule, e.g. `T2 07:30-09:10 (I.41)`
      * @returns {Generator<Omit<Timerow, "name" | "extras">>}
      */
@@ -196,7 +215,7 @@
         const descriptionRow = [];
         if (extraEntries.length !== 0) {
             const description = extraEntries.map(([k ,v]) => `${k}: ${v}`).join("\\n")
-            descriptionRow.push(`DESCRIPTION:${description}`);
+            descriptionRow.push(`DESCRIPTION:${wrapText(description, 13)}`);
         }
         
         const rrules = [
@@ -228,9 +247,9 @@
             `UID:${crypto.randomUUID()}@${ICAL_ID}`,
             `DTSTAMP:${formatISO8601(new Date(), UTC_TIMEZONE_FORMATTER)}`,
 
-            `SUMMARY:${tr.name}`,
+            `SUMMARY:${wrapText(tr.name, 9)}`,
             ...descriptionRow,
-            `LOCATION:${tr.location}`,
+            `LOCATION:${wrapText(tr.location, 10)}`,
 
             `DTSTART;TZID=${TIMEZONE}:${
                 formatISO8601(
