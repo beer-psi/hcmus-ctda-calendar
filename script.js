@@ -25,7 +25,7 @@
     const ICAL_ID = /** @type {const} */("ctdacalendar");
     const ICAL_PRODUCT = /** @type {const} */("CTDA Timetable Exporter");
 
-    const TIMEZONE = "Asia/Ho_Chi_Minh";
+    const TIMEZONE = /** @type {const} */("Asia/Ho_Chi_Minh");
 
     const DAYS_OF_THE_WEEK = /** @type {const} */(["T2", "T3", "T4", "T5", "T6", "T7", "CN"]);
 
@@ -71,30 +71,30 @@
             breaks: [
                 {
                     // Lunar New Year
-                    start: new Date("2023-01-29T00:00:00Z"),
-                    end: new Date("2023-02-18T00:00:00Z"),
+                    start: new Date("2024-01-29T00:00:00Z"),
+                    end: new Date("2024-02-18T00:00:00Z"),
                 },
                 {
                     // Midterms
-                    start: new Date("2023-03-04T00:00:00Z"),
-                    end: new Date("2023-03-10T00:00:00Z"),
+                    start: new Date("2024-03-04T00:00:00Z"),
+                    end: new Date("2024-03-10T00:00:00Z"),
                 }
             ]
         },
         "3/23-24": {
             theory: {
-                start: new Date("2023-05-13T00:00:00Z"),
-                end: new Date("2023-08-18T00:00:00Z"),
+                start: new Date("2024-05-13T00:00:00Z"),
+                end: new Date("2024-08-18T00:00:00Z"),
             },
             practice: {
-                start: new Date("2023-05-20T00:00:00Z"),
-                end: new Date("2023-08-18T00:00:00Z"),
+                start: new Date("2024-05-20T00:00:00Z"),
+                end: new Date("2024-08-18T00:00:00Z"),
             },
             breaks: [
                 {
                     // Midterms + Admission 2024
-                    start: new Date("2023-06-17T00:00:00Z"),
-                    end: new Date("2023-07-14T00:00:00Z"),
+                    start: new Date("2024-06-17T00:00:00Z"),
+                    end: new Date("2024-07-14T00:00:00Z"),
                 },
             ]
         }
