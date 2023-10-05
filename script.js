@@ -1,6 +1,27 @@
 /// <reference types="@types/knockout" />
+/// <reference types="@types/toastr" />
+/// <reference types="@types/jquery" />
 
-(() => {
+(async () => {
+    if (!$.alert) {
+        const css = document.createElement("link");
+        css.rel = "stylesheet";
+        css.type = "text/css";
+        const cssPromise = new Promise((resolve) => css.addEventListener("load", resolve));
+        css.href = "/plugins/jquery-confirm/dist/jquery-confirm.min.css";
+        document.head.appendChild(css);
+
+        const tag = document.createElement("script");
+        const scriptPromise = new Promise((resolve) => tag.addEventListener("load", resolve));
+        tag.src = "/plugins/jquery-confirm/dist/jquery-confirm.min.js";
+        document.head.appendChild(tag);
+
+        await Promise.all([
+            cssPromise,
+            scriptPromise,
+        ])
+    }
+
     const ICAL_ID = /** @type {const} */("ctdacalendar");
     const ICAL_PRODUCT = /** @type {const} */("CTDA Timetable Exporter");
 
@@ -8,10 +29,16 @@
 
     const DAYS_OF_THE_WEEK = /** @type {const} */(["T2", "T3", "T4", "T5", "T6", "T7", "CN"]);
 
+    /**
+     * @lazy Matches any of <br>, <br /> and more for various purposes,
+     *       such as splitting dates and lecturers.
+     */
     const ANY_BR_TAG_REGEX = /<\s*br\s*\/?\s*>/gu;
     
     /**
      * A mapping of semester codes to its beginning and ending dates.
+     * Source: https://www.ctda.hcmus.edu.vn/wp-content/uploads/2023/08/CTDA_Ke-hoach-nam-2023-2024.pdf
+     * @todo Update next year
      * @type {Record<string, SemesterDates>}
      */
     const SEMESTER_DATES = {
@@ -96,11 +123,14 @@
     });
 
     /**
+     * Formats a date with the provided formatter in ISO8601, without
+     * any dashes or colons. Example: `20231005T094203`
+     * 
      * @param {Date} d 
      * @param {Intl.DateTimeFormat} formatter
      * @returns {string}
      */
-    function formatISO8601(d, formatter) {
+    function formatIcalISO8601(d, formatter) {
         /**
          * @type {Partial<Record<Intl.DateTimeFormatPartTypes, string>>}
          */
@@ -192,6 +222,9 @@
     }
     
     /**
+     * Creates a copy of the provided date object, and add a number of
+     * days into it. Returns the new date object, with the old one
+     * unmodified.
      * 
      * @param {Date} date 
      * @param {number} days 
@@ -221,7 +254,7 @@
         }
         
         const rrules = [
-            `RRULE:FREQ=WEEKLY;UNTIL=${formatISO8601(endDate, UTC_TIMEZONE_FORMATTER)}`,
+            `RRULE:FREQ=WEEKLY;UNTIL=${formatIcalISO8601(endDate, UTC_TIMEZONE_FORMATTER)}`,
         ];
 
         const startDate = dateOfIndex(tr.startHm, startMondayUTC, tr.weekday);
@@ -234,9 +267,9 @@
                 if (excludes.some((span) => span.start <= currentDate && currentDate <= span.end)) {
                     if (excludeCount === 0) {
                         rrules.push(`EXDATE;TZID=${TIMEZONE}`);
-                        rrules.push(` :${formatISO8601(currentDate, LOCAL_TIMEZONE_FORMATTER)}`);
+                        rrules.push(` :${formatIcalISO8601(currentDate, LOCAL_TIMEZONE_FORMATTER)}`);
                     } else {
-                        rrules.push(` ,${formatISO8601(currentDate, LOCAL_TIMEZONE_FORMATTER)}`);
+                        rrules.push(` ,${formatIcalISO8601(currentDate, LOCAL_TIMEZONE_FORMATTER)}`);
                     }
                     excludeCount++;
                 }
@@ -247,20 +280,20 @@
         return [
             "BEGIN:VEVENT",
             `UID:${crypto.randomUUID()}@${ICAL_ID}`,
-            `DTSTAMP:${formatISO8601(new Date(), UTC_TIMEZONE_FORMATTER)}`,
+            `DTSTAMP:${formatIcalISO8601(new Date(), UTC_TIMEZONE_FORMATTER)}`,
 
             `SUMMARY:${wrapText(tr.name, 9)}`,
             ...descriptionRow,
             `LOCATION:${wrapText(tr.location, 10)}`,
 
             `DTSTART;TZID=${TIMEZONE}:${
-                formatISO8601(
+                formatIcalISO8601(
                     dateOfIndex(tr.startHm, startMondayUTC, tr.weekday),
                     LOCAL_TIMEZONE_FORMATTER,
                 )
             }`,
             `DTEND;TZID=${TIMEZONE}:${
-                formatISO8601(
+                formatIcalISO8601(
                     dateOfIndex(tr.endHm, startMondayUTC, tr.weekday),
                     LOCAL_TIMEZONE_FORMATTER,
                 )
@@ -273,27 +306,51 @@
     }
 
     /**
+     * Given a HTML string, returns its text content.
+     * 
      * @param {string} content 
      */
     function deleteHTMLTags(content) {
         const div = document.createElement("div");
         div.innerHTML = content;
-        const result = div.innerText;
+        const result = div.textContent;
         div.remove();
-        return result;
+        return result ?? "";
     }
 
     if (document.location.pathname !== "/sinh-vien/ket-qua-dkhp") {
-        if (
-            confirm("You are in the wrong place. To export your timetable, go to https://portal.ctdb.hcmus.edu.vn/sinh-vien/ket-qua-dkhp. Press OK to continue.")
-        ) {
-            document.location = "/sinh-vien/ket-qua-dkhp";
-        }
+        $.alert({
+            type: "red",
+            title: "Wrong location",
+            content: "You are in the wrong place. To export your timetable, go to https://portal.ctdb.hcmus.edu.vn/sinh-vien/ket-qua-dkhp.",
+            buttons: {
+                ok: {
+                    text: "Take me there",
+                    btnClass: "btn-blue",
+                    action: () => {
+                        document.location = "/sinh-vien/ket-qua-dkhp";
+                    }
+                },
+                cancel: {
+                    text: "Cancel",
+                }
+            }
+        });
+        return;
     }
 
     const dkhpTable = document.querySelector(".ModCTDBSVKetQuaDKHPC");
     if (!dkhpTable) {
-        alert("Timetable not found?! Cannot export timetable without one.");
+        $.alert({
+            type: "red",
+            title: "Could not find timetable",
+            content: 'Cannot export timetable if it does not exist. If you think this is an error, please <a href="https://github.com/beerpiss/hcmus-ctda-calendar/issues">contact the developer</a>.',
+            buttons: {
+                ok: {
+                    text: "OK",
+                }
+            }
+        })
         return;
     }
 
@@ -302,10 +359,18 @@
      */
     const vmDKHP = ko.dataFor(dkhpTable);
     const ketQuaDKHP = vmDKHP.dsKetQuaDKHP();
-    console.log(`ketQuaDKHP: ${ketQuaDKHP}`);
+    console.log(`ketQuaDKHP: ${JSON.stringify(ketQuaDKHP)}`);
 
     if (ketQuaDKHP.length === 0) {
-        alert("Nothing to export.")
+        $.alert({
+            title: "Nothing to export",
+            content: 'Seems like you have no subjects this semester. Have fun! If you think this is an error, please <a href="https://github.com/beerpiss/hcmus-ctda-calendar/issues">contact the developer</a>.',
+            buttons: {
+                ok: {
+                    text: "OK",
+                }
+            }
+        });
         return;
     }
 
@@ -334,7 +399,17 @@
 
         const dates = SEMESTER_DATES[subject.HocKy];
         if (!dates) {
-            throw new Error(`Start and end dates for this semester has not been added. Please contact the script developer.`);
+            $.alert({
+                type: "red",
+                title: "Error",
+                content: `Start and end dates for semester ${subject.HocKy} has not been added. Please <a href="https://github.com/beerpiss/hcmus-ctda-calendar/issues">contact the developer</a>.`,
+                buttons: {
+                    ok: {
+                        text: "OK",
+                    }
+                }
+            });
+            return;
         }
 
         /**
@@ -401,4 +476,5 @@
     anchor.download = filename;
     anchor.click();
     anchor.remove();
+    toastr.success("The timetable was successfully exported.");
 })();

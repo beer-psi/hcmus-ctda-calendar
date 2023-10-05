@@ -5,12 +5,34 @@ settings:
   excludeLinksFromLockfile: false
 
 devDependencies:
+  '@types/jquery':
+    specifier: ^3.5.21
+    version: 3.5.21
   '@types/knockout':
     specifier: ^3.4.73
     version: 3.4.73
+  '@types/toastr':
+    specifier: ^2.1.41
+    version: 2.1.41
 
 packages:
 
+  /@types/jquery@3.5.21:
+    resolution: {integrity: sha512-BgCalH4OX2JcjbnD9E86L+WeN6IcCGZle+Iy0I6eOMuraAfcMb0Z1x9E51rC2Dqq+m8KexEoDBW6GIJxUPmLEg==}
+    dependencies:
+      '@types/sizzle': 2.3.4
+    dev: true
+
   /@types/knockout@3.4.73:
     resolution: {integrity: sha512-v3Yj/7jn0d3fsQswCk+It7ZaHuR9+X1oRnaOxrCitNr9K3gKZ0raHEhtepnoCQ7kChvRK+Nb3iQREgKIcxFQRw==}
+    dev: true
+
+  /@types/sizzle@2.3.4:
+    resolution: {integrity: sha512-jA2llq2zNkg8HrALI7DtWzhALcVH0l7i89yhY3iBdOz6cBPeACoFq+fkQrjHA39t1hnSFOboZ7A/AY5MMZSlag==}
+    dev: true
+
+  /@types/toastr@2.1.41:
+    resolution: {integrity: sha512-CcLfkAmZvrgNcfRCdpcu3TTEsc7eN/MgAbmt2sr+F6d5SyoEpvvv4PJLNiTl3lEEnnmvIfGhm1VMLZusa8kHjw==}
+    dependencies:
+      '@types/jquery': 3.5.21
     dev: true
