@@ -9,10 +9,17 @@ or [Outlook](https://support.microsoft.com/en-us/office/import-calendars-into-ou
 
 ### Usage
 On the [timetable page](https://portal.ctdb.hcmus.edu.vn/sinh-vien/ket-qua-dkhp), 
-paste the [contents of script.js](https://raw.githubusercontent.com/beerpiss/hcmus-ctda-calendar/trunk/script.js)
-into the browser's DevTools console. The exported iCalendar file will be in your downloads folder.
+paste this script into the browser's DevTools console:
+```js
+((d, l) => {
+    if (l.host === "portal.ctdb.hcmus.edu.vn" && l.pathname === "/sinh-vien/ket-qua-dkhp")
+        d.body.appendChild(d.createElement("script")).src = "https://beerpiss.github.io/hcmus-ctda-calendar/script.js?t="+Math.floor(Date.now()/60000);
+})(document, location);
+```
 
-For convenience, you can also save [this bookmarklet](javascript:void(function(d){if(d.location.host==='portal.ctdb.hcmus.edu.vn'&&d.location.pathname==='/sinh-vien/ket-qua-dkhp')document.body.appendChild(document.createElement('script')).src='https://beerpiss.github.io/hcmus-ctda-calendar/script.js?t='+Math.floor(Date.now()/60000)})(document);) 
+The exported iCalendar file will be in your downloads folder.
+
+For convenience, you can also save [this bookmarklet](javascript:void((d,l)=>{if(l.host==='portal.ctdb.hcmus.edu.vn'&&l.pathname==='/sinh-vien/ket-qua-dkhp')d.body.appendChild(d.createElement('script')).src='https://beerpiss.github.io/hcmus-ctda-calendar/script.js?t='+Math.floor(Date.now()/60000)})(document,location);) 
 (view from <https://beerpiss.github.io/hcmus-ctda-calendar/>) and execute it every time
 you want to export the timetable.
 
