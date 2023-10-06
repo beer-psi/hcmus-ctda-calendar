@@ -1,6 +1,102 @@
 /// <reference types="@types/knockout" />
 /// <reference types="@types/toastr" />
 /// <reference types="@types/jquery" />
+/// <reference types="./jquery-confirm.d.ts" />
+
+/**
+ * An object containing a start date, and an end date.
+ * 
+ * @typedef {{
+ *  start: Date;
+ *  end: Date;
+ * }} TimeSpan
+ */
+
+/** 
+ * An object containing start and end dates for the semester, alongside
+ * any mid-semester breaks.
+ * 
+ * Any breaks declared should be between the earliest start date, and the
+ * latest end date.
+ * 
+ * @typedef {{
+ *  theory: TimeSpan;
+ *  practice: TimeSpan;
+ *  breaks: Array<TimeSpan>;
+ * }} SemesterDates
+ */
+
+/**
+ * Object containing one single class time, alongside some metadata.
+ * 
+ * A subject can have many `Timerow`s.
+ * 
+ * @typedef {object} Timerow
+ * @property {string} name The subject name of the class. Will be the
+ *  event title when exporting to iCalendar.
+ * @property {number} weekday Day of the week, from 0-6, with 0 being Monday.
+ * @property {[number, number]} startHm Class start time in UTC+7
+ * @property {[number, number]} endHm Class end time in UTC+7
+ * @property {string} location Classroom location.
+ * @property {Record<string, string>} extras Any extra metadata that will
+ *  be written into the event description, in the format of `${key}: ${value}`.
+ */
+
+/**
+ * An object containing information about a Subject, as returned by the
+ * portal's API and its Knockout.js view mmodel.
+ * 
+ * @typedef {{
+ *  Id: string;
+ *  MaDKHP: number;
+ *  MaMG: number;
+ *  MaMH: number;
+ *  KyHieu: string;
+ *  TenMH: string;
+ *  TenTA: string;
+ *  TenTP: string;
+ *  SoTinChi: number;
+ *  MaLopSH: string;
+ *  MaLopHP: string;
+ *  SoSVDK: number;
+ *  SoSVDaDK: string;
+ *  HocBangTA: boolean;
+ *  MaHeDT: number
+ *  LichHocLT: string;
+ *  LichHocTH: string;
+ *  MaNhomTH: number;
+ *  GVLyThuyet: string
+ *  GVThucHanh: string;
+ *  GVTroGiang: string | null;
+ *  MonHocLai: boolean;
+ *  MonCaiThien: boolean;
+ *  MonHoanThi: boolean;
+ *  GhiChu: string;
+ *  HocKy: string;
+ * }} Subject
+ */
+
+/**
+ * An object modelling a Semester, as returned by the portal's API and
+ * the Knockout.js view model.
+ * 
+ * @typedef {{
+ *  MaHK: number;
+ *  NamHoc: string;
+ *  TenHK: string;
+ *  ThuTuHK: number;
+ * }} Semester
+ */
+
+/**
+ * The Knockout.js view model for the timetable page.
+ * 
+ * @typedef {{
+ *  dsKetQuaDKHP: KnockoutObservableArray<Subject>;
+ *  dsHocKy: KnockoutObservableArray<Semester>;
+ *  selectedMaHK: KnockoutObservable<number>;
+ * }} DKHPViewModel
+ */
 
 (async () => {
     if (!$.alert) {
@@ -236,14 +332,16 @@
     }
 
     /**
-     * Taken from @bkalendar/core
+     * Taken from `@bkalendar/core`
+     * 
      * Copyright (c) 2022 BKalendar
+     * 
      * SPDX-License-Identifier: MIT
      * 
      * @param {Timerow} tr 
      * @param {Date} startMondayUTC
      * @param {Date} endDate
-     * @param {Array<TimeSpan>} excludes
+     * @param {Array<TimeSpan>} [excludes=[]]
      */
     function formatTimerow(tr, startMondayUTC, endDate, excludes = []) {
         const extraEntries = Object.entries(tr.extras);
@@ -378,7 +476,7 @@
         "BEGIN:VCALENDAR",
 		`PRODID:-//${ICAL_ID}//${ICAL_PRODUCT}//VI`,
 		"VERSION:2.0",
-		// https://github.com/touch4it/ical-timezones/blob/master/lib/zones/Asia/Ho_Chi_Minh.ics
+		// http://www.tzurl.org/zoneinfo/Asia/Ho_Chi_Minh.ics
 		"BEGIN:VTIMEZONE",
 		"TZID:Asia/Ho_Chi_Minh",
 		"TZURL:http://tzurl.org/zoneinfo-outlook/Asia/Ho_Chi_Minh",

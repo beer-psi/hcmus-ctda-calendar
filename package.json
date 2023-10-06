@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "esbuild --minify --target=es6 --outfile=script.min.js script.js"
   },
   "keywords": [],
   "author": "",
@@ -12,6 +13,7 @@
   "devDependencies": {
     "@types/jquery": "^3.5.21",
     "@types/knockout": "^3.4.73",
-    "@types/toastr": "^2.1.41"
+    "@types/toastr": "^2.1.41",
+    "esbuild": "^0.19.4"
   }
 }
