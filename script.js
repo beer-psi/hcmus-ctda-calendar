@@ -99,6 +99,8 @@
  */
 
 (async () => {
+    "use strict";
+    
     if (!$.alert) {
         const css = document.createElement("link");
         css.rel = "stylesheet";
