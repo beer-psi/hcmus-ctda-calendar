@@ -135,64 +135,64 @@
     
     /**
      * A mapping of semester codes to its beginning and ending dates.
-     * Source: https://www.ctda.hcmus.edu.vn/wp-content/uploads/2023/08/CTDA_Ke-hoach-nam-2023-2024.pdf
+     * Source: https://www.ctda.hcmus.edu.vn/wp-content/uploads/2024/08/CTDA_Ke-hoach-nam-2024-2025.pdf
      * @todo Update next year
      * @type {Record<string, SemesterDates>}
      */
     const SEMESTER_DATES = {
-        "1/23-24": {
+        "1/24-25": {
             theory: {
-                start: new Date("2023-10-02T00:00:00Z"),
-                end: new Date("2023-12-17T00:00:00Z"),
+                start: new Date("2024-09-30T00:00:00Z"),
+                end: new Date("2024-12-15T00:00:00Z"),
             },
             practice: {
-                start: new Date("2023-10-09T00:00:00Z"),
-                end: new Date("2023-12-17T00:00:00Z"),
+                start: new Date("2024-10-07T00:00:00Z"),
+                end: new Date("2024-12-15T00:00:00Z"),
             },
             breaks: [
                 {
                     // Midterms
-                    start: new Date("2023-11-06T00:00:00Z"),
-                    end: new Date("2023-11-12T00:00:00Z"),
+                    start: new Date("2024-11-04T00:00:00Z"),
+                    end: new Date("2024-11-10T00:00:00Z"),
                 }
-            ],
+            ]
         },
-        "2/23-24": {
+        "2/24-25": {
             theory: {
-                start: new Date("2024-01-08T00:00:00Z"),
-                end: new Date("2024-04-14T00:00:00Z"),
+                start: new Date("2025-01-06T00:00:00Z"),
+                end: new Date("2025-04-13T00:00:00Z"),
             },
             practice: {
-                start: new Date("2024-01-15T00:00:00Z"),
-                end: new Date("2024-04-14T00:00:00Z"),
+                start: new Date("2025-01-13T00:00:00Z"),
+                end: new Date("2025-04-13T00:00:00Z"),
             },
             breaks: [
                 {
                     // Lunar New Year
-                    start: new Date("2024-01-29T00:00:00Z"),
-                    end: new Date("2024-02-18T00:00:00Z"),
+                    start: new Date("2025-01-20T00:00:00Z"),
+                    end: new Date("2025-02-09T00:00:00Z"),
                 },
                 {
                     // Midterms
-                    start: new Date("2024-03-04T00:00:00Z"),
-                    end: new Date("2024-03-10T00:00:00Z"),
+                    start: new Date("2025-03-03T00:00:00Z"),
+                    end: new Date("2025-03-09T00:00:00Z"),
                 }
             ]
         },
-        "3/23-24": {
+        "3/24-25": {
             theory: {
-                start: new Date("2024-05-13T00:00:00Z"),
-                end: new Date("2024-08-18T00:00:00Z"),
+                start: new Date("2025-05-12T00:00:00Z"),
+                end: new Date("2025-08-17T00:00:00Z"),
             },
             practice: {
-                start: new Date("2024-05-20T00:00:00Z"),
-                end: new Date("2024-08-18T00:00:00Z"),
+                start: new Date("2025-05-19T00:00:00Z"),
+                end: new Date("2025-08-17T00:00:00Z"),
             },
             breaks: [
                 {
                     // Midterms + Admission 2024
-                    start: new Date("2024-06-17T00:00:00Z"),
-                    end: new Date("2024-07-14T00:00:00Z"),
+                    start: new Date("2025-06-16T00:00:00Z"),
+                    end: new Date("2025-07-13T00:00:00Z"),
                 },
             ]
         }
@@ -264,8 +264,10 @@
      */
     function* parseSchedule(schedule) {
         const dates = schedule.split(ANY_BR_TAG_REGEX);
+
         for (const date of dates) {
             const match = date.match(/(?<dow>T[2-7]|CN) (?<start>\d{1,2}:\d{1,2})-(?<end>\d{1,2}:\d{1,2}) \((?<class>.+?)\)/);
+
             if (!match || match.length !== 5) {
                 throw new Error(`Schedule was not in correct format: ${date}`);
             }
@@ -492,12 +494,17 @@
 		"END:VTIMEZONE",
     ];
     for (const subject of ketQuaDKHP) {
+        if (!subject.LichHocLT && !subject.LichHocTH) {
+            // Special case: Military Education does not have any times.
+            continue;
+        }
+
         /**
          * @type {Timerow | null}
          */
         let timerow = null;
-
         const dates = SEMESTER_DATES[subject.HocKy];
+
         if (!dates) {
             $.alert({
                 type: "red",
