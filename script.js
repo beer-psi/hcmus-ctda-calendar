@@ -233,9 +233,11 @@
          * @type {Partial<Record<Intl.DateTimeFormatPartTypes, string>>}
          */
         const parts = {};
+
         for (const part of formatter.formatToParts(d)) {
             parts[part.type] = part.value;
         }
+
         return `${parts.year}${parts.month}${parts.day}T${parts.hour}${parts.minute}${parts.second}`;
     }
 
@@ -273,22 +275,26 @@
             }
 
             const [_, dayOfWeek, startHour, endHour, location] = /** @type {[string, typeof DAYS_OF_THE_WEEK[number], string, string, string]} */(match);
-
             const weekday = DAYS_OF_THE_WEEK.indexOf(dayOfWeek);
+
             if (weekday === -1) {
                 throw new Error(`Unknown weekday: ${dayOfWeek}`);
             }
 
             const startHmStrings = startHour.split(":");
+
             if (startHmStrings.length !== 2) {
                 throw new Error(`Cannot parse start hour: ${startHour}`);
             }
+
             const startHm = /** @type {[number, number]} */(startHmStrings.map((e) => Number(e)));
 
             const endHmStrings = endHour.split(":");
+
             if (endHmStrings.length !== 2) {
                 throw new Error(`Cannot parse end hour: ${endHour}`);
             }
+
             const endHm = /** @type {[number, number]} */(endHmStrings.map((e) => Number(e)));
             
             yield {
@@ -365,6 +371,7 @@
         if (excludes.length > 0) {
             let currentDate = startDate;
             let excludeCount = 0;
+
             while (currentDate < endDate) {
                 if (excludes.some((span) => span.start <= currentDate && currentDate <= span.end)) {
                     if (excludeCount === 0) {
@@ -442,6 +449,7 @@
     }
 
     const dkhpTable = document.querySelector(".ModCTDBSVKetQuaDKHPC");
+
     if (!dkhpTable) {
         $.alert({
             type: "red",
@@ -461,6 +469,7 @@
      */
     const vmDKHP = ko.dataFor(dkhpTable);
     const ketQuaDKHP = vmDKHP.dsKetQuaDKHP();
+
     console.log(`ketQuaDKHP: ${JSON.stringify(ketQuaDKHP)}`);
 
     if (ketQuaDKHP.length === 0) {
@@ -530,7 +539,6 @@
 
         if (subject.GhiChu) {
             commonExtras["Ghi chú"] = deleteHTMLTags(subject.GhiChu).replace(/^Ghi chú:\s*/, "");
-        
         }
 
         if (subject.LichHocLT) {
