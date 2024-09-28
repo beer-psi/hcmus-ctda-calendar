@@ -37,7 +37,8 @@
  * @property {number} weekday Day of the week, from 0-6, with 0 being Monday.
  * @property {[number, number]} startHm Class start time in UTC+7
  * @property {[number, number]} endHm Class end time in UTC+7
- * @property {string} location Classroom location.
+ * @property {string | null} location Classroom location. Can be null for subjects
+ *  like Physical Education.
  * @property {Record<string, string>} extras Any extra metadata that will
  *  be written into the event description, in the format of `${key}: ${value}`.
  */
@@ -268,13 +269,13 @@
         const dates = schedule.split(ANY_BR_TAG_REGEX);
 
         for (const date of dates) {
-            const match = date.match(/(?<dow>T[2-7]|CN) (?<start>\d{1,2}:\d{1,2})-(?<end>\d{1,2}:\d{1,2}) \((?<class>.+?)\)/);
+            const match = date.match(/(?<dow>T[2-7]|CN) (?<start>\d{1,2}:\d{1,2})-(?<end>\d{1,2}:\d{1,2}) (?:\((?<class>.+?)\))?/);
 
             if (!match || match.length !== 5) {
                 throw new Error(`Schedule was not in correct format: ${date}`);
             }
 
-            const [_, dayOfWeek, startHour, endHour, location] = /** @type {[string, typeof DAYS_OF_THE_WEEK[number], string, string, string]} */(match);
+            const [_, dayOfWeek, startHour, endHour, location] = /** @type {[string, typeof DAYS_OF_THE_WEEK[number], string, string, string | undefined]} */(match);
             const weekday = DAYS_OF_THE_WEEK.indexOf(dayOfWeek);
 
             if (weekday === -1) {
@@ -301,7 +302,7 @@
                 weekday,
                 startHm,
                 endHm,
-                location,
+                location: location ?? null,
             };
         }
     }
@@ -356,6 +357,7 @@
     function formatTimerow(tr, startMondayUTC, endDate, excludes = []) {
         const extraEntries = Object.entries(tr.extras);
         const descriptionRow = [];
+
         if (extraEntries.length !== 0) {
             const description = extraEntries.map(([k ,v]) => `${k}: ${v}`).join("\\n")
             descriptionRow.push(`DESCRIPTION:${wrapText(description, 13)}`);
@@ -364,7 +366,6 @@
         const rrules = [
             `RRULE:FREQ=WEEKLY;UNTIL=${formatIcalISO8601(endDate, UTC_TIMEZONE_FORMATTER)}`,
         ];
-
         const startDate = dateOfIndex(tr.startHm, startMondayUTC, tr.weekday);
         
         // Check if the weekly event coincides with any breaks, and add exceptions.
@@ -386,15 +387,20 @@
             }
         }
 
-        return [
+        const vevent = [
             "BEGIN:VEVENT",
             `UID:${crypto.randomUUID()}@${ICAL_ID}`,
             `DTSTAMP:${formatIcalISO8601(new Date(), UTC_TIMEZONE_FORMATTER)}`,
 
             `SUMMARY:${wrapText(tr.name, 9)}`,
             ...descriptionRow,
-            `LOCATION:${wrapText(tr.location, 10)}`,
+        ];
 
+        if (tr.location !== null) {
+            vevent.push(`LOCATION:${wrapText(tr.location, 10)}`);
+        }
+
+        vevent.push(
             `DTSTART;TZID=${TIMEZONE}:${
                 formatIcalISO8601(
                     dateOfIndex(tr.startHm, startMondayUTC, tr.weekday),
@@ -411,7 +417,9 @@
             ...rrules,
 
             "END:VEVENT",
-        ]
+        );
+
+        return vevent;
     }
 
     /**
