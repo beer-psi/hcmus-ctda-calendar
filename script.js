@@ -551,15 +551,22 @@
 
         if (subject.LichHocLT) {
             const calendarTitle = `[${subject.KyHieu}] [LT] ${subject.TenMH}`;
+            /**
+             * @type {Record<string, string>}
+             */
+            const extras = {};
+
+            if (subject.GVLyThuyet) {
+                extras["Giáo viên"] = subject.GVLyThuyet.replace(ANY_BR_TAG_REGEX, ", ");
+            }
+
+            Object.assign(extras, commonExtras);
 
             for (const schedule of parseSchedule(subject.LichHocLT)) {
                 timerow = {
                     ...schedule,
                     name: calendarTitle,
-                    extras: {
-                        "Giáo viên": subject.GVLyThuyet.replace(ANY_BR_TAG_REGEX, ", "),
-                        ...commonExtras,
-                    },
+                    extras,
                 };
                 ical.push(...formatTimerow(timerow, dates.theory.start, dates.theory.end, dates.breaks))
             }
@@ -567,15 +574,22 @@
 
         if (subject.LichHocTH) {
             const calendarTitle = `[${subject.KyHieu}] [TH] ${subject.TenMH}`;
+            /**
+             * @type {Record<string, string>}
+             */
+            const extras = {};
+
+            if (subject.GVThucHanh) {
+                extras["Giáo viên"] = subject.GVThucHanh.replace(ANY_BR_TAG_REGEX, ", ");
+            }
+
+            Object.assign(extras, commonExtras);
 
             for (const schedule of parseSchedule(subject.LichHocTH)) {
                 timerow = { 
                     ...schedule,
                     name: calendarTitle,
-                    extras: {
-                        "Giáo viên": subject.GVThucHanh.replace(ANY_BR_TAG_REGEX, ", "),
-                        ...commonExtras,
-                    },
+                    extras,
                 }
                 ical.push(...formatTimerow(timerow, dates.practice.start, dates.practice.end, dates.breaks))
             }
