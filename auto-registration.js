@@ -90,11 +90,6 @@
 
     observer.observe(dkhpTable, { childList: true });
 
-    // can register subjects now
-    // if (!vmDKHP.ok()) {
-    //     return;
-    // }
-
     const textarea = document.createElement("textarea");
     let textareaDebounce = 0;
 
@@ -110,10 +105,11 @@
         }, 1000);
     });
 
-    const anchor = document.createElement("button");
+    const button = document.createElement("button");
 
-    anchor.textContent = "Bulk register subjects";
-    anchor.onclick = async (e) => {
+    button.textContent = "Bulk register subjects";
+    button.disabled = !vmDKHP.ok();
+    button.onclick = async (e) => {
         e.preventDefault();
 
         const subjectIDs = textarea.value.split(/\s+/gu).map((s) => Number(s));
@@ -166,5 +162,11 @@
 
     dkhpModule.querySelector(".panel .panel-body")?.insertAdjacentElement("beforeend", textarea);
     dkhpModule.querySelector(".panel .panel-body")?.insertAdjacentElement("beforeend", document.createElement("br"));
-    dkhpModule.querySelector(".panel .panel-body")?.insertAdjacentElement("beforeend", anchor);
+    dkhpModule.querySelector(".panel .panel-body")?.insertAdjacentElement("beforeend", button);
+
+    // if we have prefilled subjects and we can register subjects now, do it
+    if (localStorage.getItem("registeredSubjectIDs") && vmDKHP.ok()) {
+        // hack, wait for network to load
+        setTimeout(() => button.click(), 2000);
+    }
 })();
