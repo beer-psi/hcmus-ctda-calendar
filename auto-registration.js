@@ -40,126 +40,130 @@
 */
 
 (async () => {
-   "use strict";
+    "use strict";
 
-   if (document.location.pathname !== "/dang-ky-hoc-phan/sinh-vien-apcs") {
-       return;
-   }
+    if (document.location.pathname !== "/dang-ky-hoc-phan/sinh-vien-apcs") {
+        return;
+    }
 
-   const dkhpModule = document.querySelector(".ModCTDBDKHocPhanC");
+    const dkhpModule = document.querySelector(".ModCTDBDKHocPhanC");
 
-   if (!dkhpModule) {
-       return;
-   }
+    if (!dkhpModule) {
+        return;
+    }
 
-   const dkhpTable = dkhpModule.querySelector("#divMonChuaDK table tbody");
+    const dkhpTable = dkhpModule.querySelector("#divMonChuaDK table tbody");
 
-   if (!dkhpTable) {
-       return;
-   }
+    if (!dkhpTable) {
+        return;
+    }
 
-   /**
-    * @type {DKHPViewModel | undefined}
-    */
-   const vmDKHP = ko.dataFor(dkhpModule);
+    /**
+     * @type {DKHPViewModel | undefined}
+     */
+    const vmDKHP = ko.dataFor(dkhpModule);
 
-   if (!vmDKHP) {
-       return;
-   }
+    if (!vmDKHP) {
+        return;
+    }
 
-   const observer = new MutationObserver((mutations) => {
-       for (const mutation of mutations) {
-           for (const addedNode of mutation.addedNodes) {
-               if (addedNode.nodeName !== "TR") {
-                   continue;
-               }
+    const observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+            for (const addedNode of mutation.addedNodes) {
+                if (addedNode.nodeName !== "TR") {
+                    continue;
+                }
 
-               const row = /** @type {Element} */(addedNode);
-               const cell = row.querySelectorAll("td")[1];
+                const row = /** @type {Element} */(addedNode);
+                const cell = row.querySelectorAll("td")[1];
 
-               if (!cell) {
-                   continue;
-               }
+                if (!cell) {
+                    continue;
+                }
 
-               const vm = ko.dataFor(row);
+                const vm = ko.dataFor(row);
 
-               cell.textContent += ` (${vm.MaMG})`;
-           }
-       }
-   });
+                cell.textContent += ` (${vm.MaMG})`;
+            }
+        }
+    });
 
-   observer.observe(dkhpTable, { childList: true });
+    observer.observe(dkhpTable, { childList: true });
 
-   // can register subjects now
-   // if (!vmDKHP.ok()) {
-   //     return;
-   // }
+    // can register subjects now
+    // if (!vmDKHP.ok()) {
+    //     return;
+    // }
 
-   const textarea = document.createElement("textarea");
-   let textareaDebounce = 0;
+    const textarea = document.createElement("textarea");
+    let textareaDebounce = 0;
 
-   textarea.placeholder = "Enter internal subject IDs (shown in parentheses) separated by whitespace.";
-   textarea.value = localStorage.getItem("registeredSubjectIDs") ?? "";
-   textarea.addEventListener("keyup", (e) => {
-       if (textareaDebounce) {
-           clearTimeout(textareaDebounce);
-       }
+    textarea.placeholder = "Enter internal subject IDs (shown in parentheses) separated by whitespace.";
+    textarea.value = localStorage.getItem("registeredSubjectIDs") ?? "";
+    textarea.addEventListener("keyup", (e) => {
+        if (textareaDebounce) {
+            clearTimeout(textareaDebounce);
+        }
 
-       textareaDebounce = setTimeout(() => {
-           localStorage.setItem("registeredSubjectIDs", textarea.value);
-       }, 1000);
-   });
+        textareaDebounce = setTimeout(() => {
+            localStorage.setItem("registeredSubjectIDs", textarea.value);
+        }, 1000);
+    });
 
-   const anchor = document.createElement("button");
+    const anchor = document.createElement("button");
 
-   anchor.textContent = "Bulk register subjects";
-   anchor.onclick = async (e) => {
-       e.preventDefault();
+    anchor.textContent = "Bulk register subjects";
+    anchor.onclick = async (e) => {
+        e.preventDefault();
 
-       const subjectIDs = textarea.value.split(/\s+/gu).map((s) => Number(s));
-       const validSubjectIDs = vmDKHP.dsChuaDangKy().map((s) => s.MaMG);
-       const registeringSubjectIDs = subjectIDs.filter((id) => validSubjectIDs.includes(id));
+        const subjectIDs = textarea.value.split(/\s+/gu).map((s) => Number(s));
+        const validSubjectIDs = vmDKHP.dsChuaDangKy().map((s) => s.MaMG);
+        const registeringSubjectIDs = subjectIDs.filter((id) => validSubjectIDs.includes(id));
 
-       const promises = registeringSubjectIDs.map((id) => {
-           const ajax = new Ajax("addMonDangKy", id);
+        if (registeringSubjectIDs.length === 0) {
+            toastr.warning("No valid subjects entered.");
+        }
 
-           return new Promise((resolve, reject) => {
-               ajax.post((result) => {
-                   const respData = JSON.parse(result);
+        const promises = registeringSubjectIDs.map((id) => {
+            const ajax = new Ajax("addMonDangKy", id);
 
-                   if (respData.Status === "OK") {
-                       resolve(respData);
-                   } else {
-                       reject(respData);
-                   }
-               });
-           });
-       });
-       const result = await Promise.allSettled(promises);
+            return new Promise((resolve, reject) => {
+                ajax.post((result) => {
+                    const respData = JSON.parse(result);
 
-       vmDKHP.loadDangKyHocPhan();
+                    if (respData.Status === "OK") {
+                        resolve(respData);
+                    } else {
+                        reject(respData);
+                    }
+                });
+            });
+        });
+        const result = await Promise.allSettled(promises);
 
-       if (result.some((r) => r.status === "rejected")) {
-           const errors = result
-               .filter((r) => r.status === "rejected")
-               .map((r) => r.reason.Message);
+        vmDKHP.loadDangKyHocPhan();
 
-           $.alert({
-               type: "red",
-               title: "Could not register some subjects",
-               content: errors.join("<br>"),
-               buttons: {
-                   ok: {
-                       text: "Ok",
-                   }
-               }
-           })
-       } else {
-           toastr.success("Successfully registered subjects.");
-       }
-   };
+        if (result.some((r) => r.status === "rejected")) {
+            const errors = result
+                .filter((r) => r.status === "rejected")
+                .map((r) => r.reason.Message);
 
-   dkhpModule.querySelector(".panel .panel-body")?.insertAdjacentElement("beforeend", textarea);
-   dkhpModule.querySelector(".panel .panel-body")?.insertAdjacentElement("beforeend", document.createElement("br"));
-   dkhpModule.querySelector(".panel .panel-body")?.insertAdjacentElement("beforeend", anchor);
+            $.alert({
+                type: "red",
+                title: "Could not register some subjects",
+                content: errors.join("<br>"),
+                buttons: {
+                    ok: {
+                        text: "Ok",
+                    }
+                }
+            })
+        } else {
+            toastr.success("Successfully registered subjects.");
+        }
+    };
+
+    dkhpModule.querySelector(".panel .panel-body")?.insertAdjacentElement("beforeend", textarea);
+    dkhpModule.querySelector(".panel .panel-body")?.insertAdjacentElement("beforeend", document.createElement("br"));
+    dkhpModule.querySelector(".panel .panel-body")?.insertAdjacentElement("beforeend", anchor);
 })();
