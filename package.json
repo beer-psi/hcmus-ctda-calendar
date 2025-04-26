@@ -15,5 +15,10 @@
     "@types/knockout": "^3.4.73",
     "@types/toastr": "^2.1.41",
     "esbuild": "^0.25.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }

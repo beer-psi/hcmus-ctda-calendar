@@ -45,7 +45,7 @@
 
 /**
  * An object containing information about a Subject, as returned by the
- * portal's API and its Knockout.js view mmodel.
+ * portal's API and its Knockout.js view model.
  * 
  * @typedef {{
  *  Id: string;
@@ -96,7 +96,7 @@
  *  dsKetQuaDKHP: KnockoutObservableArray<Subject>;
  *  dsHocKy: KnockoutObservableArray<Semester>;
  *  selectedMaHK: KnockoutObservable<number>;
- * }} DKHPViewModel
+ * }} KetQuaDKHPViewModel
  */
 
 (async () => {
@@ -473,7 +473,7 @@
     }
 
     /**
-     * @type {DKHPViewModel}
+     * @type {KetQuaDKHPViewModel}
      */
     const vmDKHP = ko.dataFor(dkhpTable);
     const ketQuaDKHP = vmDKHP.dsKetQuaDKHP();
