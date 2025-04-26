@@ -122,6 +122,7 @@
 
         if (registeringSubjectIDs.length === 0) {
             toastr.warning("No valid subjects entered.");
+            return;
         }
 
         const promises = registeringSubjectIDs.map((id) => {
