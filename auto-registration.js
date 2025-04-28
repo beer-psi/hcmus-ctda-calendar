@@ -2,7 +2,7 @@
 // @name        HCMUS CTDA Automatic Subject Registration
 // @match       https://portal.ctdb.hcmus.edu.vn/dang-ky-hoc-phan/sinh-vien-apcs
 // @grant       none
-// @version     1.0
+// @version     1.0.1
 // @author      -
 // @description 4/26/2025, 10:28:09 AM
 // ==/UserScript==
