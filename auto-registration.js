@@ -108,7 +108,6 @@
     const button = document.createElement("button");
 
     button.textContent = "Bulk register subjects";
-    button.disabled = !vmDKHP.ok();
     button.onclick = async (e) => {
         e.preventDefault();
 
