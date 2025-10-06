@@ -5,20 +5,20 @@
 
 /**
  * An object containing a start date, and an end date.
- * 
+ *
  * @typedef {{
  *  start: Date;
  *  end: Date;
  * }} TimeSpan
  */
 
-/** 
+/**
  * An object containing start and end dates for the semester, alongside
  * any mid-semester breaks.
- * 
+ *
  * Any breaks declared should be between the earliest start date, and the
  * latest end date.
- * 
+ *
  * @typedef {{
  *  theory: TimeSpan;
  *  practice: TimeSpan;
@@ -28,9 +28,9 @@
 
 /**
  * Object containing one single class time, alongside some metadata.
- * 
+ *
  * A subject can have many `Timerow`s.
- * 
+ *
  * @typedef {object} Timerow
  * @property {string} name The subject name of the class. Will be the
  *  event title when exporting to iCalendar.
@@ -46,7 +46,7 @@
 /**
  * An object containing information about a Subject, as returned by the
  * portal's API and its Knockout.js view model.
- * 
+ *
  * @typedef {{
  *  Id: string;
  *  MaDKHP: number;
@@ -80,7 +80,7 @@
 /**
  * An object modelling a Semester, as returned by the portal's API and
  * the Knockout.js view model.
- * 
+ *
  * @typedef {{
  *  MaHK: number;
  *  NamHoc: string;
@@ -91,7 +91,7 @@
 
 /**
  * The Knockout.js view model for the timetable page.
- * 
+ *
  * @typedef {{
  *  dsKetQuaDKHP: KnockoutObservableArray<Subject>;
  *  dsHocKy: KnockoutObservableArray<Semester>;
@@ -101,102 +101,112 @@
 
 (async () => {
     "use strict";
-    
+
     if (!$.alert) {
         const css = document.createElement("link");
         css.rel = "stylesheet";
         css.type = "text/css";
-        const cssPromise = new Promise((resolve) => css.addEventListener("load", resolve));
+        const cssPromise = new Promise((resolve) =>
+            css.addEventListener("load", resolve),
+        );
         css.href = "/plugins/jquery-confirm/dist/jquery-confirm.min.css";
         document.head.appendChild(css);
 
         const tag = document.createElement("script");
-        const scriptPromise = new Promise((resolve) => tag.addEventListener("load", resolve));
+        const scriptPromise = new Promise((resolve) =>
+            tag.addEventListener("load", resolve),
+        );
         tag.src = "/plugins/jquery-confirm/dist/jquery-confirm.min.js";
         document.head.appendChild(tag);
 
-        await Promise.all([
-            cssPromise,
-            scriptPromise,
-        ])
+        await Promise.all([cssPromise, scriptPromise]);
     }
 
-    const ICAL_ID = /** @type {const} */("ctdacalendar");
-    const ICAL_PRODUCT = /** @type {const} */("CTDA Timetable Exporter");
+    const ICAL_ID = /** @type {const} */ ("ctdacalendar");
+    const ICAL_PRODUCT = /** @type {const} */ ("CTDA Timetable Exporter");
 
-    const TIMEZONE = /** @type {const} */("Asia/Ho_Chi_Minh");
+    const TIMEZONE = /** @type {const} */ ("Asia/Ho_Chi_Minh");
 
-    const DAYS_OF_THE_WEEK = /** @type {const} */(["T2", "T3", "T4", "T5", "T6", "T7", "CN"]);
+    const DAYS_OF_THE_WEEK = /** @type {const} */ ([
+        "T2",
+        "T3",
+        "T4",
+        "T5",
+        "T6",
+        "T7",
+        "CN",
+    ]);
 
     /**
      * @lazy Matches any of <br>, <br /> and more for various purposes,
      *       such as splitting dates and lecturers.
      */
     const ANY_BR_TAG_REGEX = /<\s*br\s*\/?\s*>/gu;
-    
+
     /**
      * A mapping of semester codes to its beginning and ending dates.
-     * Source: https://www.ctda.hcmus.edu.vn/wp-content/uploads/2024/08/CTDA_Ke-hoach-nam-2024-2025.pdf
+     * Source: https://www.ctda.hcmus.edu.vn/wp-content/uploads/2025/08/CTDA_Ke-hoach-nam-2025-2026.pdf
+     * @warn Times must be in UTC.
      * @todo Update next year
      * @type {Record<string, SemesterDates>}
      */
     const SEMESTER_DATES = {
-        "1/24-25": {
+        "1/25-26": {
             theory: {
-                start: new Date("2024-09-30T00:00:00Z"),
-                end: new Date("2024-12-15T00:00:00Z"),
+                start: new Date("2025-10-06T00:00:00Z"),
+                end: new Date("2025-12-21T00:00:00Z"),
             },
             practice: {
-                start: new Date("2024-10-07T00:00:00Z"),
-                end: new Date("2024-12-15T00:00:00Z"),
+                start: new Date("2025-10-13T00:00:00Z"),
+                end: new Date("2025-12-21T00:00:00Z"),
             },
             breaks: [
                 {
                     // Midterms
-                    start: new Date("2024-11-04T00:00:00Z"),
-                    end: new Date("2024-11-10T00:00:00Z"),
-                }
-            ]
+                    start: new Date("2025-11-10T00:00:00Z"),
+                    end: new Date("2025-11-16T00:00:00Z"),
+                },
+            ],
         },
-        "2/24-25": {
+        "2/25-26": {
             theory: {
-                start: new Date("2025-01-06T00:00:00Z"),
-                end: new Date("2025-04-13T00:00:00Z"),
+                start: new Date("2026-01-12T00:00:00Z"),
+                end: new Date("2025-04-26T00:00:00Z"),
             },
             practice: {
-                start: new Date("2025-01-13T00:00:00Z"),
-                end: new Date("2025-04-13T00:00:00Z"),
+                start: new Date("2026-01-19T00:00:00Z"),
+                end: new Date("2025-04-26T00:00:00Z"),
             },
             breaks: [
                 {
                     // Lunar New Year
-                    start: new Date("2025-01-20T00:00:00Z"),
-                    end: new Date("2025-02-09T00:00:00Z"),
+                    start: new Date("2026-02-09T00:00:00Z"),
+                    end: new Date("2025-02-29T00:00:00Z"),
                 },
                 {
                     // Midterms
-                    start: new Date("2025-03-03T00:00:00Z"),
-                    end: new Date("2025-03-09T00:00:00Z"),
-                }
-            ]
+                    start: new Date("2026-03-09T00:00:00Z"),
+                    end: new Date("2026-03-15T00:00:00Z"),
+                },
+            ],
         },
-        "3/24-25": {
+        "3/25-26": {
             theory: {
-                start: new Date("2025-05-12T00:00:00Z"),
-                end: new Date("2025-08-17T00:00:00Z"),
+                start: new Date("2026-05-18T00:00:00Z"),
+                end: new Date("2026-08-23T00:00:00Z"),
             },
             practice: {
-                start: new Date("2025-05-19T00:00:00Z"),
-                end: new Date("2025-08-17T00:00:00Z"),
+                start: new Date("2026-05-25T00:00:00Z"),
+                end: new Date("2026-08-23T00:00:00Z"),
             },
             breaks: [
                 {
-                    // Midterms + Admission 2024
-                    start: new Date("2025-06-16T00:00:00Z"),
-                    end: new Date("2025-07-13T00:00:00Z"),
+                    // Midterms + Admission 2025
+                    start: new Date("2026-06-22T00:00:00Z"),
+                    end: new Date("2026-07-12T00:00:00Z"),
                 },
-            ]
-        }
+            ],
+        },
     };
 
     const UTC_TIMEZONE_FORMATTER = new Intl.DateTimeFormat("vi-VN", {
@@ -224,8 +234,8 @@
     /**
      * Formats a date with the provided formatter in ISO8601, without
      * any dashes or colons. Example: `20231005T094203`
-     * 
-     * @param {Date} d 
+     *
+     * @param {Date} d
      * @param {Intl.DateTimeFormat} formatter
      * @returns {string}
      */
@@ -243,12 +253,12 @@
     }
 
     /**
-     * @param {string} content 
-     * @param {number} initialLineLength 
+     * @param {string} content
+     * @param {number} initialLineLength
      */
     function wrapText(content, initialLineLength = 0) {
         const length = content.length;
-        
+
         let processed = 75 - initialLineLength;
         let ret = content.substring(0, 75 - initialLineLength);
 
@@ -269,13 +279,18 @@
         const dates = schedule.split(ANY_BR_TAG_REGEX);
 
         for (const date of dates) {
-            const match = date.match(/(?<dow>T[2-7]|CN) (?<start>\d{1,2}:\d{1,2})-(?<end>\d{1,2}:\d{1,2}) (?:\((?<class>.+?)\))?/);
+            const match = date.match(
+                /(?<dow>T[2-7]|CN) (?<start>\d{1,2}:\d{1,2})-(?<end>\d{1,2}:\d{1,2})\s*(?:\((?<class>.+?)\))?/,
+            );
 
             if (!match || match.length !== 5) {
                 throw new Error(`Schedule was not in correct format: ${date}`);
             }
 
-            const [_, dayOfWeek, startHour, endHour, location] = /** @type {[string, typeof DAYS_OF_THE_WEEK[number], string, string, string | undefined]} */(match);
+            const [_, dayOfWeek, startHour, endHour, location] =
+                /** @type {[string, typeof DAYS_OF_THE_WEEK[number], string, string, string | undefined]} */ (
+                    match
+                );
             const weekday = DAYS_OF_THE_WEEK.indexOf(dayOfWeek);
 
             if (weekday === -1) {
@@ -288,7 +303,9 @@
                 throw new Error(`Cannot parse start hour: ${startHour}`);
             }
 
-            const startHm = /** @type {[number, number]} */(startHmStrings.map((e) => Number(e)));
+            const startHm = /** @type {[number, number]} */ (
+                startHmStrings.map((e) => Number(e))
+            );
 
             const endHmStrings = endHour.split(":");
 
@@ -296,8 +313,10 @@
                 throw new Error(`Cannot parse end hour: ${endHour}`);
             }
 
-            const endHm = /** @type {[number, number]} */(endHmStrings.map((e) => Number(e)));
-            
+            const endHm = /** @type {[number, number]} */ (
+                endHmStrings.map((e) => Number(e))
+            );
+
             yield {
                 weekday,
                 startHm,
@@ -311,30 +330,33 @@
      * Taken from @bkalendar/core
      * Copyright (c) 2022 BKalendar
      * SPDX-License-Identifier: MIT
-     * 
-     * @param {[number, number]} hm 
-     * @param {Date} startMondayUTC 
-     * @param {number} weekday 
+     *
+     * @param {[number, number]} hm
+     * @param {Date} startMondayUTC
+     * @param {number} weekday
      */
     function dateOfIndex(hm, startMondayUTC, weekday) {
         const SECOND = 1000;
         const MINUTE = 60 * SECOND;
         const HOUR = 60 * MINUTE;
-        const DAY = 24 * HOUR;        
+        const DAY = 24 * HOUR;
         return new Date(
             // hm is in UTC+7
             // weekday is between 0-6
-            +startMondayUTC + weekday * DAY + (hm[0] - 7) * HOUR + hm[1] * MINUTE,
+            +startMondayUTC +
+                weekday * DAY +
+                (hm[0] - 7) * HOUR +
+                hm[1] * MINUTE,
         );
     }
-    
+
     /**
      * Creates a copy of the provided date object, and add a number of
      * days into it. Returns the new date object, with the old one
      * unmodified.
-     * 
-     * @param {Date} date 
-     * @param {number} days 
+     *
+     * @param {Date} date
+     * @param {number} days
      */
     function addDays(date, days) {
         const newDate = new Date(date.valueOf());
@@ -344,12 +366,12 @@
 
     /**
      * Taken from `@bkalendar/core`
-     * 
+     *
      * Copyright (c) 2022 BKalendar
-     * 
+     *
      * SPDX-License-Identifier: MIT
-     * 
-     * @param {Timerow} tr 
+     *
+     * @param {Timerow} tr
      * @param {Date} startMondayUTC
      * @param {Date} endDate
      * @param {Array<TimeSpan>} [excludes=[]]
@@ -359,27 +381,39 @@
         const descriptionRow = [];
 
         if (extraEntries.length !== 0) {
-            const description = extraEntries.map(([k ,v]) => `${k}: ${v}`).join("\\n")
+            const description = extraEntries
+                .map(([k, v]) => `${k}: ${v}`)
+                .join("\\n");
             descriptionRow.push(`DESCRIPTION:${wrapText(description, 13)}`);
         }
-        
+
         const rrules = [
             `RRULE:FREQ=WEEKLY;UNTIL=${formatIcalISO8601(endDate, UTC_TIMEZONE_FORMATTER)}`,
         ];
         const startDate = dateOfIndex(tr.startHm, startMondayUTC, tr.weekday);
-        
+
         // Check if the weekly event coincides with any breaks, and add exceptions.
         if (excludes.length > 0) {
             let currentDate = startDate;
             let excludeCount = 0;
 
             while (currentDate < endDate) {
-                if (excludes.some((span) => span.start <= currentDate && currentDate <= span.end)) {
+                if (
+                    excludes.some(
+                        (span) =>
+                            span.start <= currentDate &&
+                            currentDate <= span.end,
+                    )
+                ) {
                     if (excludeCount === 0) {
                         rrules.push(`EXDATE;TZID=${TIMEZONE}`);
-                        rrules.push(` :${formatIcalISO8601(currentDate, LOCAL_TIMEZONE_FORMATTER)}`);
+                        rrules.push(
+                            ` :${formatIcalISO8601(currentDate, LOCAL_TIMEZONE_FORMATTER)}`,
+                        );
                     } else {
-                        rrules.push(` ,${formatIcalISO8601(currentDate, LOCAL_TIMEZONE_FORMATTER)}`);
+                        rrules.push(
+                            ` ,${formatIcalISO8601(currentDate, LOCAL_TIMEZONE_FORMATTER)}`,
+                        );
                     }
                     excludeCount++;
                 }
@@ -401,19 +435,15 @@
         }
 
         vevent.push(
-            `DTSTART;TZID=${TIMEZONE}:${
-                formatIcalISO8601(
-                    dateOfIndex(tr.startHm, startMondayUTC, tr.weekday),
-                    LOCAL_TIMEZONE_FORMATTER,
-                )
-            }`,
-            `DTEND;TZID=${TIMEZONE}:${
-                formatIcalISO8601(
-                    dateOfIndex(tr.endHm, startMondayUTC, tr.weekday),
-                    LOCAL_TIMEZONE_FORMATTER,
-                )
-            }`,
-            
+            `DTSTART;TZID=${TIMEZONE}:${formatIcalISO8601(
+                dateOfIndex(tr.startHm, startMondayUTC, tr.weekday),
+                LOCAL_TIMEZONE_FORMATTER,
+            )}`,
+            `DTEND;TZID=${TIMEZONE}:${formatIcalISO8601(
+                dateOfIndex(tr.endHm, startMondayUTC, tr.weekday),
+                LOCAL_TIMEZONE_FORMATTER,
+            )}`,
+
             ...rrules,
 
             "END:VEVENT",
@@ -424,8 +454,8 @@
 
     /**
      * Given a HTML string, returns its text content.
-     * 
-     * @param {string} content 
+     *
+     * @param {string} content
      */
     function deleteHTMLTags(content) {
         const div = document.createElement("div");
@@ -439,19 +469,20 @@
         $.alert({
             type: "red",
             title: "Wrong location",
-            content: "You are in the wrong place. To export your timetable, go to https://portal.ctdb.hcmus.edu.vn/sinh-vien/ket-qua-dkhp.",
+            content:
+                "You are in the wrong place. To export your timetable, go to https://portal.ctdb.hcmus.edu.vn/sinh-vien/ket-qua-dkhp.",
             buttons: {
                 ok: {
                     text: "Take me there",
                     btnClass: "btn-blue",
                     action: () => {
                         document.location = "/sinh-vien/ket-qua-dkhp";
-                    }
+                    },
                 },
                 cancel: {
                     text: "Cancel",
-                }
-            }
+                },
+            },
         });
         return;
     }
@@ -462,13 +493,14 @@
         $.alert({
             type: "red",
             title: "Could not find timetable",
-            content: 'Cannot export timetable if it does not exist. If you think this is an error, please <a href="https://github.com/beerpiss/hcmus-ctda-calendar/issues">contact the developer</a>.',
+            content:
+                'Cannot export timetable if it does not exist. If you think this is an error, please <a href="https://github.com/beerpiss/hcmus-ctda-calendar/issues">contact the developer</a>.',
             buttons: {
                 ok: {
                     text: "OK",
-                }
-            }
-        })
+                },
+            },
+        });
         return;
     }
 
@@ -483,32 +515,33 @@
     if (ketQuaDKHP.length === 0) {
         $.alert({
             title: "Nothing to export",
-            content: 'Seems like you have no subjects this semester. Have fun! If you think this is an error, please <a href="https://github.com/beerpiss/hcmus-ctda-calendar/issues">contact the developer</a>.',
+            content:
+                'Seems like you have no subjects this semester. Have fun! If you think this is an error, please <a href="https://github.com/beerpiss/hcmus-ctda-calendar/issues">contact the developer</a>.',
             buttons: {
                 ok: {
                     text: "OK",
-                }
-            }
+                },
+            },
         });
         return;
     }
 
     const ical = [
         "BEGIN:VCALENDAR",
-		`PRODID:-//${ICAL_ID}//${ICAL_PRODUCT}//VI`,
-		"VERSION:2.0",
-		// http://www.tzurl.org/zoneinfo/Asia/Ho_Chi_Minh.ics
-		"BEGIN:VTIMEZONE",
-		"TZID:Asia/Ho_Chi_Minh",
-		"TZURL:http://tzurl.org/zoneinfo-outlook/Asia/Ho_Chi_Minh",
-		"X-LIC-LOCATION:Asia/Ho_Chi_Minh",
-		"BEGIN:STANDARD",
-		"TZOFFSETFROM:+0700",
-		"TZOFFSETTO:+0700",
-		"TZNAME:+07",
-		"DTSTART:19700101T000000",
-		"END:STANDARD",
-		"END:VTIMEZONE",
+        `PRODID:-//${ICAL_ID}//${ICAL_PRODUCT}//VI`,
+        "VERSION:2.0",
+        // http://www.tzurl.org/zoneinfo/Asia/Ho_Chi_Minh.ics
+        "BEGIN:VTIMEZONE",
+        "TZID:Asia/Ho_Chi_Minh",
+        "TZURL:http://tzurl.org/zoneinfo-outlook/Asia/Ho_Chi_Minh",
+        "X-LIC-LOCATION:Asia/Ho_Chi_Minh",
+        "BEGIN:STANDARD",
+        "TZOFFSETFROM:+0700",
+        "TZOFFSETTO:+0700",
+        "TZNAME:+07",
+        "DTSTART:19700101T000000",
+        "END:STANDARD",
+        "END:VTIMEZONE",
     ];
     for (const subject of ketQuaDKHP) {
         if (!subject.LichHocLT && !subject.LichHocTH) {
@@ -530,8 +563,8 @@
                 buttons: {
                     ok: {
                         text: "OK",
-                    }
-                }
+                    },
+                },
             });
             return;
         }
@@ -542,11 +575,17 @@
         const commonExtras = {};
 
         if (subject.GVTroGiang) {
-            commonExtras["Trợ giảng"] = subject.GVTroGiang.replace(ANY_BR_TAG_REGEX, ", ");
+            commonExtras["Trợ giảng"] = subject.GVTroGiang.replace(
+                ANY_BR_TAG_REGEX,
+                ", ",
+            );
         }
 
         if (subject.GhiChu) {
-            commonExtras["Ghi chú"] = deleteHTMLTags(subject.GhiChu).replace(/^Ghi chú:\s*/, "");
+            commonExtras["Ghi chú"] = deleteHTMLTags(subject.GhiChu).replace(
+                /^Ghi chú:\s*/,
+                "",
+            );
         }
 
         if (subject.LichHocLT) {
@@ -557,7 +596,10 @@
             const extras = {};
 
             if (subject.GVLyThuyet) {
-                extras["Giáo viên"] = subject.GVLyThuyet.replace(ANY_BR_TAG_REGEX, ", ");
+                extras["Giáo viên"] = subject.GVLyThuyet.replace(
+                    ANY_BR_TAG_REGEX,
+                    ", ",
+                );
             }
 
             Object.assign(extras, commonExtras);
@@ -568,7 +610,14 @@
                     name: calendarTitle,
                     extras,
                 };
-                ical.push(...formatTimerow(timerow, dates.theory.start, dates.theory.end, dates.breaks))
+                ical.push(
+                    ...formatTimerow(
+                        timerow,
+                        dates.theory.start,
+                        dates.theory.end,
+                        dates.breaks,
+                    ),
+                );
             }
         }
 
@@ -580,18 +629,28 @@
             const extras = {};
 
             if (subject.GVThucHanh) {
-                extras["Giáo viên"] = subject.GVThucHanh.replace(ANY_BR_TAG_REGEX, ", ");
+                extras["Giáo viên"] = subject.GVThucHanh.replace(
+                    ANY_BR_TAG_REGEX,
+                    ", ",
+                );
             }
 
             Object.assign(extras, commonExtras);
 
             for (const schedule of parseSchedule(subject.LichHocTH)) {
-                timerow = { 
+                timerow = {
                     ...schedule,
                     name: calendarTitle,
                     extras,
-                }
-                ical.push(...formatTimerow(timerow, dates.practice.start, dates.practice.end, dates.breaks))
+                };
+                ical.push(
+                    ...formatTimerow(
+                        timerow,
+                        dates.practice.start,
+                        dates.practice.end,
+                        dates.breaks,
+                    ),
+                );
             }
         }
     }
@@ -604,7 +663,7 @@
 
     const semester = semesterList.find((s) => s.MaHK === semesterCode);
 
-    const filename = semester 
+    const filename = semester
         ? `${semester.TenHK}.ics`
         : "Unknown Semester.ics";
 
