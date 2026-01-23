@@ -171,17 +171,17 @@
         "2/25-26": {
             theory: {
                 start: new Date("2026-01-12T00:00:00Z"),
-                end: new Date("2025-04-26T00:00:00Z"),
+                end: new Date("2026-04-26T00:00:00Z"),
             },
             practice: {
                 start: new Date("2026-01-19T00:00:00Z"),
-                end: new Date("2025-04-26T00:00:00Z"),
+                end: new Date("2026-04-26T00:00:00Z"),
             },
             breaks: [
                 {
                     // Lunar New Year
                     start: new Date("2026-02-09T00:00:00Z"),
-                    end: new Date("2025-02-29T00:00:00Z"),
+                    end: new Date("2026-02-29T00:00:00Z"),
                 },
                 {
                     // Midterms
